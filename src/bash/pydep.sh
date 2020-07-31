@@ -10,6 +10,12 @@ for path in $PIPFILES_PATH
 do
     if [[ -f "$path" ]]
     then
+        if [ "$(type -t pipenv)" = "" ]
+        then
+            echo "You have to install pipenv manually." >&2
+            exit 1
+        fi
+        
         pushd $(dirname "$path")
             echo "Found Pipfile. Installation of dependencies..."
             pipenv install --system --deploy --ignore-pipfile
