@@ -5,8 +5,10 @@ fileEnv() {
     eval "local secretPath=\$$fileVar"
     local default="${2:-}"
     
+    echo "Default: $default"
+    
   	if [[ "$value" ]] && [[ "$secretPath" ]]; then
-        echo "Both $var and $fileVar are set (but are exclusive)" >&2
+        echo "Both $var and $fileVar are set (but are exclusive)." >&2
 	      exit 1
   	fi
     
@@ -15,7 +17,12 @@ fileEnv() {
     fi
     
     if [[ -z "$value" ]]; then
+      if [[ -z "$default" ]]; then
+          echo "$var or $fileVar require a value." >&2
+          exit 1
+      else
         value="$default"
+      fi
     fi
     
   	export "$var"="$value"
