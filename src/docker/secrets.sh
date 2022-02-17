@@ -29,7 +29,7 @@ fileEnv() {
     fi
     
     if [[ -z "$value" ]]; then
-      if [[ -z "$default" ]]; then
+      if [[ $# == 1 ]] && [[ -z "$default" ]]; then
           echo "$var or $fileVar require a value." >&2
           exit 1
       else
@@ -40,3 +40,5 @@ fileEnv() {
   	export "$var"="$value"
   	unset "$fileVar"
 }
+
+fileEnv "ICECAST_ADMIN_USER" ""
