@@ -1,3 +1,17 @@
+clearEnvironment() {
+    local varPrefix="$1"
+    
+    if [[ -z "$varPrefix" ]]; then
+      echo "Variable prefix is required." >&2
+      exit 1
+    fi
+    
+    for name in $(printenv | grep "${varPrefix}_" | cut -d= -f1); do
+        unset "$name"
+    done
+}
+
+
 fileEnv() {
     local var="$1"
     local fileVar="${var}_FILE"
