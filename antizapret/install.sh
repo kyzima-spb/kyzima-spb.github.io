@@ -41,8 +41,11 @@ if [[ ! -z $needReqs ]]; then
 fi
 
 
-if [[ ! -d /root/.gnupg/ ]]; then
-    mkdir -p /root/.gnupg/
+gnupgDir="/root/.gnupg/"
+
+if [[ ! -d "$gnupgDir" ]]; then
+    mkdir -p "$gnupgDir"
+    chmod 700 "$gnupgDir"
 fi
 
 systemctl enable --now systemd-networkd.service
