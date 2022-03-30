@@ -6,14 +6,14 @@ set -e
 # See https://bitbucket.org/anticensority/antizapret-vpn-container/ for the installation steps.
 # 
 
+commandExists() {
+    command -v "$1" > /dev/null 2>&1
+}
+
 containerFileExists() {
     dir=$(dirname $1)
     filename=$(basename $1)
     machinectl -q shell antizapret-vpn /usr/bin/find "$dir" -type f -name "$filename"
-}
-
-packageInstalled() {
-    dpkg -l "$1" > /dev/null 2>&1
 }
 
 
@@ -26,14 +26,13 @@ fi
 needReqs=""
 
 
-if ! packageInstalled systemd-container; then
+if ! commandExists machinectl; then
     needReqs="$needReqs systemd-container"
 fi
 
 
-if ! packageInstalled dirmngr; then
+if ! commandExists gpg; then
     needReqs="$needReqs dirmngr"
-    mkdir -p /root/.gnupg/
 fi
 
 
@@ -41,6 +40,10 @@ if [[ ! -z $needReqs ]]; then
     apt update -qq && apt install -qq -y $needReqs
 fi
 
+
+if [[ ! -d /root/.gnupg/ ]]; then
+    mkdir -p /root/.gnupg/
+fi
 
 systemctl enable --now systemd-networkd.service
 
