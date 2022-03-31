@@ -83,9 +83,10 @@ if ! machinectl show "$SERVICE_NAME" > /dev/null 2>&1; then
 	srcOvpnFile="/root/easy-rsa-ipsec/CLIENT_KEY/antizapret-client-tcp.ovpn"
 	destOvpnFile=$(basename "$srcOvpnFile")
 	
-	while machinectl copy-from --force "$SERVICE_NAME" "$srcOvpnFile" > "$destOvpnFile" /dev/null 2>&1; do
-		sleep 1
-	done
+	echo -n "Wait creation OVPN config file..."
+	sleep 10
+	machinectl copy-from "$SERVICE_NAME" "$srcOvpnFile" "$destOvpnFile"
+	echo "[OK]"
 	
 	chown $SUDO_UID:$SUDO_GID "$destOvpnFile"
 fi

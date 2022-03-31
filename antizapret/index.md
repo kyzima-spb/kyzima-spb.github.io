@@ -20,7 +20,7 @@
 Входим в систему используя SSH и выданные хостером логин/пароль.
 Все команды выполняем от пользователя `root`:
 
-    wget -qO- https://kyzima-spb.github.io/antizapret/install.sh | bash
+    wget -qO- https://kyzima-spb.github.io/antizapret/install.sh | sudo bash
 
 После успешной установки, в текущей директории должен появиться файл `antizapret-client-tcp.ovpn` - это конфигурационный файл для клиента OpenVPN.
 В Linux данный файл можно скачать с сервера следующей командой:
