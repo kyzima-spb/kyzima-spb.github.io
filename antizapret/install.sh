@@ -5,21 +5,21 @@ set -e
 # 
 # See https://bitbucket.org/anticensority/antizapret-vpn-container/ for the installation steps.
 # 
+# wget -qO- http://192.168.88.200:8000/install.sh | sudo bash
+
 
 commandExists() {
-    command -v "$1" > /dev/null 2>&1
+	command -v "$1" > /dev/null 2>&1
 }
 
-containerFileExists() {
-    dir=$(dirname $1)
-    filename=$(basename $1)
-    machinectl -q shell antizapret-vpn /usr/bin/find "$dir" -type f -name "$filename"
-}
+
+SERVICE_NAME="antizapret-vpn"
+IMAGE_URL="https://antizapret.prostovpn.org/container-images/az-vpn/rootfs.tar.xz"
 
 
 if [ "$(whoami)" != "root" ]; then
-    echo "You have no permission to run $0 as non-root user. Use sudo" >&2
-    exit 1
+	echo "You have no permission to run $0 as non-root user. Use sudo" >&2
+	exit 1
 fi
 
 
@@ -27,56 +27,65 @@ needReqs=""
 
 
 if ! commandExists machinectl; then
-    needReqs="$needReqs systemd-container"
+	needReqs="$needReqs systemd-container"
 fi
 
 
 if ! commandExists gpg; then
-    needReqs="$needReqs dirmngr"
+	needReqs="$needReqs dirmngr"
 fi
 
 
 if [[ ! -z $needReqs ]]; then
-    apt update -qq && apt install -qq -y $needReqs
+	apt update -qq && apt install -qq -y $needReqs
 fi
 
 
 gnupgDir="/root/.gnupg/"
 
 if [[ ! -d "$gnupgDir" ]]; then
-    mkdir -p "$gnupgDir"
-    chmod 700 "$gnupgDir"
+	mkdir -p "$gnupgDir"
+	chmod 700 "$gnupgDir"
 fi
 
 systemctl enable --now systemd-networkd.service
 
 
-if ! machinectl show-image antizapret-vpn > /dev/null 2>&1; then
-    gpg \
-        --no-default-keyring \
-        --keyring /etc/systemd/import-pubring.gpg \
-        --keyserver hkps://keyserver.ubuntu.com \
-        --receive-keys 0xEF2E2223D08B38D4B51FFB9E7135A006B28E1285
-    
-    machinectl pull-tar https://antizapret.prostovpn.org/container-images/az-vpn/rootfs.tar.xz antizapret-vpn
-    
-    cnfPath="/etc/systemd/nspawn/antizapret-vpn.nspawn"
-    
-    if [[ ! -f $cnfPath ]]; then
-        mkdir -p "$(dirname "$cnfPath")"
-        echo -e "[Network]\nVirtualEthernet=yes\nPort=tcp:1194:1194\nPort=udp:1194:1194" > "$cnfPath"
-    fi
-    
-    machinectl enable antizapret-vpn
-    machinectl start antizapret-vpn
-    
-    ovpnFile="/root/easy-rsa-ipsec/CLIENT_KEY/antizapret-client-tcp.ovpn"
+if ! machinectl show-image "${SERVICE_NAME}" > /dev/null 2>&1; then
+	gpg \
+		--no-default-keyring \
+		--keyring /etc/systemd/import-pubring.gpg \
+		--keyserver hkps://keyserver.ubuntu.com \
+		--receive-keys 0xEF2E2223D08B38D4B51FFB9E7135A006B28E1285
+	machinectl pull-tar "$IMAGE_URL" "$SERVICE_NAME"
+fi
 
-    while [[ -z $(containerFileExists "$ovpnFile") ]]; do
-        echo "File not exists"
-        sleep 1
-        break
-    done
 
-    machinectl copy-from antizapret-vpn "$ovpnFile" $(basename "$ovpnFile")
+if ! machinectl show "$SERVICE_NAME" > /dev/null 2>&1; then
+	cnfPath="/etc/systemd/nspawn/antizapret-vpn.nspawn"
+	
+	if [[ ! -f $cnfPath ]]; then
+		mkdir -p "$(dirname "$cnfPath")"
+		cat > "$cnfPath" <<- EOF
+			[Exec]
+			NotifyReady=yes
+
+			[Network]
+			VirtualEthernet=yes
+			Port=tcp:1194:1194
+			Port=udp:1194:1194
+		EOF
+	fi
+	
+	machinectl enable "$SERVICE_NAME"
+	machinectl start "$SERVICE_NAME"
+	
+	srcOvpnFile="/root/easy-rsa-ipsec/CLIENT_KEY/antizapret-client-tcp.ovpn"
+	destOvpnFile=$(basename "$srcOvpnFile")
+	
+	while machinectl copy-from --force "$SERVICE_NAME" "$srcOvpnFile" > "$destOvpnFile" /dev/null 2>&1; do
+		sleep 1
+	done
+	
+	chown $SUDO_UID:$SUDO_GID "$destOvpnFile"
 fi
