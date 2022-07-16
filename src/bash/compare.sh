@@ -10,7 +10,7 @@ makeHash() {
 compare() {
 	local lastHash=""
 	
-	for p in $@; do
+	for p in "$@"; do
 		local newHash=$(makeHash "$p")
 		
 		if [[ "$lastHash" != "" ]] && [[ "$lastHash" != "$newHash" ]]; then
@@ -31,5 +31,5 @@ if [[ $# < 1 ]]; then
 	exit 1
 fi
 
-compare $@
+compare "$@"
 
