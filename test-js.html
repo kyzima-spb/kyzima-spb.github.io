@@ -7,7 +7,17 @@
     <div id="result"></div>
     <script>
       const result = document.getElementById('result');
-      result.append(structuredClone ? 'Supported' : 'Not supported');
+
+      const isSupported = document.createElement('p');
+      isSupported.append(structuredClone ? 'Supported' : 'Not supported');
+
+      const browserInfo = document.createElement('div');
+      browserInfo.innerHTML = `
+        <p>Platform: ${navigator.platform}</p>
+        <p>Agent: ${navigator.userAgent}</p>
+      `;
+
+      result.append(isSupported, browserInfo);
     </script>
   </body>
 </html>
