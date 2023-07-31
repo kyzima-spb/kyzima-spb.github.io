@@ -9,7 +9,7 @@
       const result = document.getElementById('result');
 
       const isSupported = document.createElement('p');
-      isSupported.append(structuredClone ? 'Supported' : 'Not supported');
+      isSupported.append(window.structuredClone ? 'Supported' : 'Not supported');
 
       const browserInfo = document.createElement('div');
       browserInfo.innerHTML = `
