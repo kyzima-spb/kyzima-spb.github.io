@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <title>Test JS</title>
+  </head>
+  
+  <body>
+    <div id="result"></div>
+    <script>
+      const result = document.getElementById('result');
+
+      const isSupported = document.createElement('p');
+      isSupported.append(window.structuredClone ? 'Supported' : 'Not supported');
+
+      const browserInfo = document.createElement('div');
+      browserInfo.innerHTML = `
+        <p>Platform: ${navigator.platform}</p>
+        <p>Agent: ${navigator.userAgent}</p>
+      `;
+
+      result.append(isSupported, browserInfo);
+    </script>
+  </body>
+</html>
